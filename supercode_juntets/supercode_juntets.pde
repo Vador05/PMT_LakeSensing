@@ -54,7 +54,7 @@ void setup()
 //Print the result through the USB
 setNewVal(value2, value);
 
-value = distMean;
+value = distMean();
  USB.print(F("SONAR    "));
  USB.print(value);
  USB.println(F("V"));
