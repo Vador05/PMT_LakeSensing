@@ -28,11 +28,13 @@ void setup()
   //Turn on the USB and print a start message
   USB.ON();
   USB.println(F("start"));
-  delay(100);
   //Turn on the sensor board
   SensorProtov20.ON();
   //Turn on the RTC
   RTC.ON();
+  //Wait a interval for sensors stabilization
+    delay(100);
+
   for (int i=0; i<50;i++){
     USB.print(F("CALIBRATING, PLEASE WAIT "));
     USB.print((50-i)*CAL_INTERVAL);

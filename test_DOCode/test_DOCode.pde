@@ -1,22 +1,28 @@
 #define DO_CHANNEL 		2
 #define FILTER_SAMPLES 		7
+#define zero_calibration        0 
+#define air_calibration         10 
+
+
+//We will fill the stacks with some ref values taken each (CAL_INTERVAL)
+int CAL_INTERVAL = 100;//in miliseconds
+int LOOP_INTERVAL= 1000;//in milisecon
 
 
 void setup() {
     // put your setup code here, to run once:
-	//Switch ON the corresponding sensor circuit
+myADC.begin();
 	delay(100);
 }
 
 
 void loop() {
     // put your main code here, to run repeatedly:
+    Serial.println(getDOMeasure);
 
 }
-float getDOMeasure(uint8_t digitalPin)
+float getDOMeasure()
 {
-
-	
 	float value_array[FILTER_SAMPLES];
 
 	// Take some measurements to filter the signal noise and glitches
@@ -25,9 +31,8 @@ float getDOMeasure(uint8_t digitalPin)
 		//Read from the ADC channel selected
 		value_array[i] = myADC.readADC(DO_CHANNEL);
 	}
-	float inpput= myFilter.median(value_array,FILTER_SAMPLES);
+	float input= myFilter.median(value_array,FILTER_SAMPLES);
 	return (input - zero_calibration)/(air_calibration - zero_calibration) * 100;
-
 }
 
 
