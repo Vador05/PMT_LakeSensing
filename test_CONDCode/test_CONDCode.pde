@@ -25,7 +25,7 @@ int LOOP_INTERVAL= 1000;//in milisecon
 
 void setup() {
     // put your setup code here, to run once:
-myADC.begin();
+      SensorProtov20.ON();
 	delay(100);
 }
 
@@ -35,7 +35,7 @@ void loop() {
    float res=getCONDMeasure();
    res= resistanceConversion(res);
    res= conductivityConversion(res);
-  Serial.println(res);
+  USB.println(res);
 
 }
 float getCONDMeasure()
@@ -46,13 +46,12 @@ float getCONDMeasure()
 	for(int i = 0; i < FILTER_SAMPLES; i++)
 	{
 		//Read from the ADC channel selected
-		value_array[i] = myADC.readADC(adcChannel);
+		value_array[i] = SensorProtov20.readADC(adcChannel);
 	}
 	//Switch OFF the corresponding sensor circuit
-	digitalWrite(digitalPin, LOW);
 	delay(100);
 
-	return myFilter.median(value_array,FILTER_SAMPLES);
+	return median(value_array,FILTER_SAMPLES);
 }
 
 
@@ -136,4 +135,14 @@ float conductivityConversion(float input)
 		value = 100000+900000*(input-SW_COND_CAL_15)/(SW_COND_CAL_16-SW_COND_CAL_15);
 
 	return value;
+}
+float median(float array[] , int numSamples)
+{
+  float result =0;
+  for( int i =0; i<numSamples; i++)
+  {
+    result+= array[i];
+  }
+  result = result/numSamples;
+  return (result);
 }
