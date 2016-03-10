@@ -2,8 +2,9 @@
 
 // Put your libraries here (#include ...)
 #include <WaspSensorPrototyping_v20.h>
-
+#include <WaspSD.h>
    SdFile LOGfile; 
+ const char* file = "FILE.TXT";
 
 void setup() {
   // put your setup code here, to run once
@@ -32,11 +33,11 @@ void setup() {
      name[strlen(name0)+i]=numfiles[i]; 
      }*/
         SD.goRoot();
-        if (SD.isFile(“LOGS.TXT”)=-1)
+        if (SD.isFile("LOGS.TXT")==-1)
         {
           USB.println("FILE DOES NOT EXIST");
 
-          if(SD.create(“LOGS.TXT”)=0)
+          if(SD.create("LOGS.TXT")==0)
           {
             USB.println("ERROR CREATING FILE");
             SD.OFF();
@@ -45,12 +46,12 @@ void setup() {
         }
         else 
         {
-          if(SD.getFileSize(“FILE.TXT”)>SD.diskSize-50)
+          if(SD.getFileSize("FILE.TXT")>SD.diskSize-50)
           {
             USB.println("Less than 50 Bytes less in your memory card");
           }
         }
-     SD.openFile( "LOGS.TXT", &file, O_READ);
+     SD.openFile( "LOGS.TXT", &LOGfile, O_READ);
             USB.println("FILE OPENED");
 
   }
@@ -65,8 +66,9 @@ void setup() {
 
 
 void loop() {
+  uint8_t writeState;
      // It writes “hello” at end of file with EOL
-   writeState = SD.appendln(file,”Holis”);
+   writeState = SD.appendln("LOGS.TXT","Holis");
   // put your main code here, to run repeatedly:
 
 }
