@@ -39,18 +39,19 @@
 #define zero_calibration            0 
 #define air_calibration             0.035 
 float value, value2;
-
-
-//We are going to integrate the values due the fast variations that they can suffer during the day that are not real info just exceptional facts
+float point_1_cond, point_2_cond, point_1_cal, point_2_cal;
+//We are going to int;
+//Filter the values due the fast variations that they can suffer during the day that are not real info just exceptional facts
   float dist[FILTER_SAMPLES];
   float temp[FILTER_SAMPLES];
   float cond[FILTER_SAMPLES];
   float dens[FILTER_SAMPLES];
-    
+   
 //We will fill the stacks with some ref values taken each (CAL_INTERVAL)
 int CAL_INTERVAL = 100;//in miliseconds
 int LOOP_INTERVAL= 1000;//in miliseconds
 
+SdFile LOGfile; 
 void setup()
 {
   //Turn on the USB and print a start message
@@ -109,7 +110,7 @@ void setup()
         }
         else 
         {
-          if(SD.getFileSize("FILE.TXT")>SD.diskSize-50)
+          if(SD.getFileSize("LOGS.TXT")>SD.diskSize-50)
           {
             USB.println("Less than 50 Bytes less in your memory card");
           }
@@ -166,12 +167,12 @@ float median(float array[] , int numSamples)
 void setNewVal (float newval,   float* vals[FILTER_SAMPLES]){
  for (int i=0;i<FILTER_SAMPLES;i++)
  {
-   vals[i]=vals[i+1];
+   *vals[i]=*vals[i+1];
  }
- vals[FILTER_SAMPLES]=newval;
+ *vals[FILTER_SAMPLES-1]=newval;
  }
  
-loat getDOMeasure(){
+float getDOMeasure(){
 	float value_array[FILTER_SAMPLES];
 
 	// Take some measurements to filter the signal noise and glitches
@@ -192,7 +193,7 @@ float getCONDMeasure()
 	for(int i = 0; i < FILTER_SAMPLES; i++)
 	{
 		//Read from the ADC channel selected
-		value_array[i] = SensorProtov20.readADC(adcChannel);
+		value_array[i] = SensorProtov20.readADC();
 	}
 	//Switch OFF the corresponding sensor circuit
 	delay(100);
