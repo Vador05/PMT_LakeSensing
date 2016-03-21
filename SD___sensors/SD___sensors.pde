@@ -38,7 +38,7 @@
 #define FILTER_SAMPLES   	    7
 #define zero_calibration            0 
 #define air_calibration             0.035 
-float value, value2;
+float value, value2, value3, value4;
 float point_1_cond, point_2_cond, point_1_cal, point_2_cal;
 //We are going to int;
 //Filter the values due the fast variations that they can suffer during the day that are not real info just exceptional facts
@@ -72,84 +72,64 @@ void setup()
    temp[i]= SensorProtov20.readAnalogSensor(ANALOG5);
    delay(CAL_INTERVAL);
   }
-  //================================ SD CARD =================================
-    SD.ON(); // Set SD card on
-  // Reads associated pin to know if there is a SD in card slot
-  if(SD.isSD())
-  {
-    USB.println("SD is detected");
-    // Get total size of SD card 
-    USB.print(SD.diskSize);
-    USB.println(" Bytes");
-    USB.print("This SD Contains ");
-    int8_t numfiles = SD.numFiles();
-    USB.print(numfiles);
-    USB.println(" files");
-    /*char* name0 = "LOGS.txt";
-     char* name1 = ".txt";
-     char* name = new char [strlen(name0)+strlen(name1)+strlen(numfiles)];
-     for (int i =0; i<srlen(name0);i++)
-     {
-     name[i]=name0[i];
-     }
-     for(int i =0; i<strlen(numfiles);i++)
-     {
-     name[strlen(name0)+i]=numfiles[i]; 
-     }*/
-        SD.goRoot();
-        if (SD.isFile("LOGS.TXT")==-1)
-        {
-          USB.println("FILE DOES NOT EXIST");
-
-          if(SD.create("LOGS.TXT")==0)
-          {
-            USB.println("ERROR CREATING FILE");
-            SD.OFF();
-            setup();
-          }
-        }
-        else 
-        {
-          if(SD.getFileSize("LOGS.TXT")>SD.diskSize-50)
-          {
-            USB.println("Less than 50 Bytes less in your memory card");
-          }
-        }
-     SD.openFile( "LOGS.TXT", &LOGfile, O_READ);
-            USB.println("FILE OPENED");
-
-  }
-  else
-  {
-    SD.OFF();
-    USB.println("NO SD try again 5 s later");
-    delay (5000);
-    setup();
-  }
+int ch;
+  while(ch==1){
+    ch=SDsetup();
+  }  
 }
 
  void loop()
 {
+    uint8_t writeState;
+
   //Read the ADC 
   //value = SensorProtov20.readADC();
   value=SensorProtov20.readAnalogSensor(ANALOG7);
-//Print the result through the USB
+//Print the result through the USB and the SD
+   writeState = SD.appendln("LOGS.TXT","SONAR    ");
+//   writeState = SD.appendln("LOGS.TXT",value);
+   writeState = SD.appendln("LOGS.TXT","V");
 
- USB.print(F("SONAR    "));
- USB.print(value);
- USB.println(F("V"));
+   USB.print(F("SONAR    "));
+   USB.print(value);
+   USB.println(F("V"));
+   
+   
   value2=SensorProtov20.readAnalogSensor(ANALOG5);
 //Print the result through the USB
+   writeState = SD.appendln("LOGS.TXT","TEMPERATURE    ");
+   //writeState = SD.appendln("LOGS.TXT",value2);
+   writeState = SD.appendln("LOGS.TXT","V");
  USB.print(F("TEMPERATURE    "));
  USB.print(value2);
  USB.println(F("V"));
+
+ value3= getDOmeasure();
+
+   writeState = SD.appendln("LOGS.TXT","DO    ");
+   //writeState = SD.appendln("LOGS.TXT",value3);
+   writeState = SD.appendln("LOGS.TXT","");
+ USB.print(F("DO    "));
+ USB.print(value3);
+ USB.println(F("V"));
+
+ value4= getCONDmeasure();
+value4= resistanceConversion(value4);
+value4= conductivityConversion(value4);
+
+   writeState = SD.appendln("LOGS.TXT","CONDUCTIVITY    ");
+   //writeState = SD.appendln("LOGS.TXT",value4);
+   writeState = SD.appendln("LOGS.TXT","");
+ USB.print(F("CONDUCTIVITY    "));
+ USB.print(value4);
+ USB.println(F(""));
+
+
+//We scroll the serial terminal
 for (int i=0;i<25;i--){
   USB.println(F(" "));
 }
- 
-//  USB.print(F("Value: "));
-  //USB.print(sensorValue);
-  //USB.println(F("V"));
+//Wait loop interval to read again
   delay(LOOP_INTERVAL);
 }
 //======================== FUNCTIONS ==========================
@@ -214,6 +194,66 @@ float conductivityConversion(float input)
 	value = SW_condK * 1 / (input+SW_condOffset);
 
 	return value;
+}
+
+int SDsetup(){
+    //================================ SD CARD =================================
+    SD.ON(); // Set SD card on
+  // Reads associated pin to know if there is a SD in card slot
+  if(SD.isSD())
+  {
+    USB.println("SD is detected");
+    // Get total size of SD card 
+    USB.print(SD.diskSize);
+    USB.println(" Bytes");
+    USB.print("This SD Contains ");
+    int8_t numfiles = SD.numFiles();
+    USB.print(numfiles);
+    USB.println(" files");
+    /*char* name0 = "LOGS.txt";
+     char* name1 = ".txt";
+     char* name = new char [strlen(name0)+strlen(name1)+strlen(numfiles)];
+     for (int i =0; i<srlen(name0);i++)
+     {
+     name[i]=name0[i];
+     }
+     for(int i =0; i<strlen(numfiles);i++)
+     {
+     name[strlen(name0)+i]=numfiles[i]; 
+     }*/
+        SD.goRoot();
+        if (SD.isFile("LOGS.TXT")==-1)
+        {
+          USB.println("FILE DOES NOT EXIST");
+
+          if(SD.create("LOGS.TXT")==0)
+          {
+            USB.println("ERROR CREATING FILE");
+            SD.OFF();
+            setup();
+            return(1);
+          }
+        }
+        else 
+        {
+          if(SD.getFileSize("LOGS.TXT")>SD.diskSize-50)
+          {
+            USB.println("Less than 50 Bytes less in your memory card");
+          }
+        }
+     SD.openFile( "LOGS.TXT", &LOGfile, O_READ);
+            USB.println("FILE OPENED");
+            return (0);
+
+  }
+  else
+  {
+    SD.OFF();
+    USB.println("NO SD try again 5 s later");
+    delay (5000);
+    setup();
+    return(1);
+  }
 }
 
 
